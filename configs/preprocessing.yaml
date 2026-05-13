@@ -1,0 +1,20 @@
+data:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  stats_dir: "data/stats"
+  categories:
+    - kien_truc
+    - am_thuc
+    - trang_phuc
+    - le_hoi
+    - nhac_cu
+    - the_thao_truyen_thong
+
+standalone:
+  use_llm_fallback: true          # set true only when Gemini key is available
+  llm_model: "gemini-2.5-flash-lite"
+  llm_max_retries: 2
+  llm_timeout_seconds: 10
+
+logging:
+  level: "INFO"

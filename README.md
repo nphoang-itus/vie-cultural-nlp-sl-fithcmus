@@ -110,16 +110,22 @@ flowchart LR
 sequenceDiagram
     participant User
     participant UI as Streamlit UI
+    participant Vision as Vision Encoder / Image Labeler
     participant SQ as Question Rewriter
     participant RAG as Retriever
     participant Model as VQA Model
 
     User->>UI: Upload image and ask question
-    UI->>SQ: Send original question
+    UI->>Vision: Send uploaded image
+    Vision-->>UI: Return vision_label / image_keyword
+
+    UI->>SQ: Send original question + vision_label
     SQ-->>UI: Return standalone question
-    UI->>RAG: Search relevant cultural context
-    RAG-->>UI: Return top-k contexts
-    UI->>Model: Send image, standalone question, retrieved context
+
+    UI->>RAG: Search with standalone question + optional vision_label
+    RAG-->>UI: Return top-k cultural contexts
+
+    UI->>Model: Send image, standalone question, vision_label, retrieved context
     Model-->>UI: Return answer and detailed explanation
     UI-->>User: Display result
 ```
