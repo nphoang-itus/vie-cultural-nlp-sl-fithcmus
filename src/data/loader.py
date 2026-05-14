@@ -64,18 +64,22 @@ def normalize_image_question_ids(records: list[dict[str, Any]]) -> list[dict[str
     """
     Ensure each image-question pair has a unique image_id.
 
-    Example:
-        image_id = "banh_chung_001"
-        question #1 -> "banh_chung_001_q1"
-        question #2 -> "banh_chung_001_q2"
-
-    This function does not mutate the input records.
+    If a record already has image_id, base_image_id and question_id,
+    keep it unchanged to avoid double suffix like "_q1_q1".
     """
     counters: dict[str, int] = defaultdict(int)
     normalized_records: list[dict[str, Any]] = []
 
     for record in records:
-        original_image_id = str(record.get("image_id", "")).strip()
+        existing_image_id = str(record.get("image_id", "")).strip()
+        existing_base_image_id = str(record.get("base_image_id", "")).strip()
+        existing_question_id = str(record.get("question_id", "")).strip()
+
+        if existing_image_id and existing_base_image_id and existing_question_id:
+            normalized_records.append(record)
+            continue
+
+        original_image_id = existing_image_id
 
         if not original_image_id:
             raise ValueError(f"Missing image_id in record: {record}")

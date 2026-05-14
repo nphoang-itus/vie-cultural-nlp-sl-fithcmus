@@ -225,4 +225,23 @@ ehthumbs.db
 .prompts/
 
 # Data
+data/viet-cultural-vqa/
 data/tmp
+data/raw/
+data/raw_resized/
+data/external/
+
+# Generated processed data
+data/processed/*.jsonl
+data/stats/*.json
+data/stats/*.csv
+
+# Large artifacts
+models/
+checkpoints/
+vector_db/
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.ckpt
