@@ -78,17 +78,35 @@ def main() -> None:
 
     use_llm = args.use_llm or sa_cfg.get("use_llm_fallback", False)
 
-    processed = process_records_optimized(
-        records=records,
-        use_llm=use_llm,
-        pending_output_path=args.pending_output,
-        cache_path=args.cache_path,
-        model=sa_cfg["llm_model"],
-        batch_size=args.batch_size,
-        sleep_seconds=args.sleep_seconds,
-        max_retries=sa_cfg["llm_max_retries"],
-        timeout=sa_cfg["llm_timeout_seconds"],
-    )
+    existing_output_records = None
+    if use_llm and args.output.exists():
+        logger.info(f"Loading existing output checkpoint from {args.output}")
+        existing_output_records = load_raw_records(args.output)
+
+    processed = None
+    interrupted = False
+
+    try:
+        processed = process_records_optimized(
+            records=records,
+            use_llm=use_llm,
+            pending_output_path=args.pending_output,
+            cache_path=args.cache_path,
+            output_path=args.output,
+            existing_output_records=existing_output_records,
+            model=sa_cfg["llm_model"],
+            batch_size=args.batch_size,
+            sleep_seconds=args.sleep_seconds,
+            max_retries=sa_cfg["llm_max_retries"],
+            timeout=sa_cfg["llm_timeout_seconds"],
+        )
+    except KeyboardInterrupt:
+        interrupted = True
+        logger.warning("Interrupted by user. Loading latest checkpoint for stats.")
+        if args.output.exists():
+            processed = load_raw_records(args.output)
+        else:
+            raise
 
     written = write_jsonl(processed, args.output)
     logger.info(f"Wrote {written} records to {args.output}")
@@ -99,10 +117,17 @@ def main() -> None:
 
     logger.info(
         f"Summary — template: {stats['template_rewritten_count']} | "
+        f"already_standalone: {stats['already_standalone_count']} | "
         f"llm: {stats['llm_rewritten_count']} | "
         f"unchanged: {stats['unchanged_count']} | "
         f"failed: {stats['failed_count']}"
     )
+
+    if processed is not None and any(record.get("rewrite_method") == "unchanged" for record in processed):
+        logger.info("Run stopped before all records were rewritten. Re-run the same command to continue.")
+
+    if interrupted:
+        sys.exit(130)
 
 
 if __name__ == "__main__":

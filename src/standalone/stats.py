@@ -44,6 +44,7 @@ def compute_stats(
         return {
             "total_questions": 0,
             "template_rewritten_count": 0,
+            "already_standalone_count": 0,
             "llm_rewritten_count": 0,
             "unchanged_count": 0,
             "failed_count": 0,
@@ -52,6 +53,7 @@ def compute_stats(
     methods = [record.get("rewrite_method", "") for record in processed_records]
 
     template_count = methods.count("template")
+    already_standalone_count = methods.count("already_standalone")
     llm_count = methods.count("llm")
     unchanged_count = methods.count("unchanged")
     failed_count = methods.count("failed")
@@ -101,6 +103,7 @@ def compute_stats(
             "original_question": record.get("question"),
             "standalone_question": record.get("standalone_question"),
             "rewrite_method": record.get("rewrite_method"),
+            "rewrite_source": record.get("rewrite_source"),
         }
         for record in processed_records[:10]
     ]
@@ -109,11 +112,13 @@ def compute_stats(
         "total_questions": total,
 
         "template_rewritten_count": template_count,
+        "already_standalone_count": already_standalone_count,
         "llm_rewritten_count": llm_count,
         "unchanged_count": unchanged_count,
         "failed_count": failed_count,
 
         "template_rewrite_rate": _safe_divide(template_count, total),
+        "already_standalone_rate": _safe_divide(already_standalone_count, total),
         "llm_rewrite_rate": _safe_divide(llm_count, total),
         "unchanged_rate": _safe_divide(unchanged_count, total),
         "failed_rate": _safe_divide(failed_count, total),

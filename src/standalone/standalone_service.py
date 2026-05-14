@@ -41,8 +41,9 @@ def process_record(
     # Layer 2: LLM fallback using vision_caption + question.
     if use_llm_fallback:
         llm_result = rewrite_with_llm(
-            vision_caption,
-            question,
+            vision_caption=vision_caption,
+            question=question,
+            keyword=keyword,
             model=llm_model,
             max_retries=llm_max_retries,
             timeout=llm_timeout,
