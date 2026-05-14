@@ -2,3 +2,6 @@ pyyaml
 python-dotenv
 pytest
 google-genai
+huggingface_hub
+Pillow
+tqdm

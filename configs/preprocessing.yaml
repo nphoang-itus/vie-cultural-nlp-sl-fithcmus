@@ -11,8 +11,8 @@ data:
     - the_thao_truyen_thong
 
 standalone:
-  use_llm_fallback: true          # set true only when Gemini key is available
-  llm_model: "gemini-2.5-flash-lite"
+  use_llm_fallback: false          # set true only when Gemini key is available
+  llm_model: "gemini-3.1-flash-lite"
   llm_max_retries: 2
   llm_timeout_seconds: 10
 
