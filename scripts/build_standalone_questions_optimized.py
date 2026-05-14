@@ -29,7 +29,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils.config import get_config
-from src.data.loader import load_raw_records, normalize_image_question_ids
+from src.data.loader import load_raw_records, validate_image_question_ids
 from src.data.io import write_jsonl, write_json
 from src.standalone.batch_service import process_records_optimized
 from src.standalone.stats import compute_stats
@@ -73,7 +73,7 @@ def main() -> None:
 
     logger.info(f"Loading records from {args.input}")
     records = load_raw_records(args.input)
-    records = normalize_image_question_ids(records)
+    records = validate_image_question_ids(records)
     logger.info(f"Loaded {len(records)} records.")
 
     use_llm = args.use_llm or sa_cfg.get("use_llm_fallback", False)

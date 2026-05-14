@@ -43,6 +43,45 @@ _PATTERNS: list[tuple[str, str]] = [
     # "Trong hình..." → "Trong hình về Bánh chưng..."
     (r"^Trong hình\s+", "Trong hình về {keyword} "),
 
+    # "Hình ảnh này thể hiện điều gì?" → "Hình ảnh về Bánh chưng thể hiện điều gì?"
+    (r"^Hình ảnh này\s+", "Hình ảnh về {keyword} "),
+
+    # "Hình ảnh thể hiện điều gì về quá trình làm bánh?" → "Hình ảnh về Bánh chưng thể hiện điều gì về quá trình làm bánh?"
+    (r"^Hình ảnh thể hiện\s+", "Hình ảnh về {keyword} thể hiện "),
+
+    # "Hình ảnh phản ánh điều gì về văn hóa Việt Nam?" → "Hình ảnh về Bánh chưng phản ánh điều gì về văn hóa Việt Nam?"
+    (r"^Hình ảnh phản ánh\s+", "Hình ảnh về {keyword} phản ánh "),
+
+    # "Tại sao hình ảnh này quan trọng?" → "Tại sao hình ảnh về Bánh chưng quan trọng?"
+    (r"^Tại sao hình ảnh này\s+", "Tại sao hình ảnh về {keyword} "),
+
+    # "Ý nghĩa văn hóa của hình ảnh này là gì?" → "Ý nghĩa văn hóa của Bánh chưng là gì?"
+    (r"^Ý nghĩa văn hóa của hình ảnh này\s+", "Ý nghĩa văn hóa của {keyword} "),
+
+    # "Ý nghĩa văn hoá của hình ảnh này là gì?" → "Ý nghĩa văn hoá của Bánh chưng là gì?"
+    (r"^Ý nghĩa văn hoá của hình ảnh này\s+", "Ý nghĩa văn hoá của {keyword} "),
+
+    # "Mô tả chi tiết các thành phần trong hình ảnh này." → "Mô tả chi tiết các thành phần của Bánh chưng."
+    (r"^Mô tả chi tiết các thành phần trong hình ảnh này", "Mô tả chi tiết các thành phần của {keyword}"),
+
+    # "Mô tả chi tiết các thành phần trong hình ảnh?" → "Mô tả chi tiết các thành phần của Bánh chưng?"
+    (r"^Mô tả chi tiết các thành phần trong hình ảnh", "Mô tả chi tiết các thành phần của {keyword}"),
+
+    # "Mô tả chi tiết về hình ảnh này." → "Mô tả chi tiết về Bánh chưng."
+    (r"^Mô tả chi tiết về hình ảnh này", "Mô tả chi tiết về {keyword}"),
+
+    # "Mô tả chi tiết về hình ảnh." → "Mô tả chi tiết về Bánh chưng."
+    (r"^Mô tả chi tiết về hình ảnh(?=[.?])", "Mô tả chi tiết về {keyword}"),
+
+    # "Mô tả chi tiết những gì bạn thấy trong hình ảnh này?" → "Mô tả chi tiết những gì bạn thấy về Bánh chưng?"
+    (r"^Mô tả chi tiết những gì bạn thấy trong hình ảnh này", "Mô tả chi tiết những gì bạn thấy về {keyword}"),
+
+    # "Mô tả chi tiết những gì bạn thấy trong hình ảnh." → "Mô tả chi tiết những gì bạn thấy về Bánh chưng."
+    (r"^Mô tả chi tiết những gì bạn thấy trong hình ảnh(?=[.?])", "Mô tả chi tiết những gì bạn thấy về {keyword}"),
+
+    # "Mô tả hình ảnh này." → "Mô tả Bánh chưng."
+    (r"^Mô tả hình ảnh này", "Mô tả {keyword}"),
+
     # Generic "... này ..." catch-all (MUST be last)
     # e.g. "Kiến trúc này có đặc điểm gì?"
     (r"^(\w+\s+)?[Nn]ày\s+", "{keyword} "),

@@ -8,6 +8,7 @@ from typing import TypedDict, Iterator
 from collections import defaultdict
 from typing import Any
 import json
+import re
 
 
 class VQARecord(TypedDict):
@@ -60,41 +61,55 @@ def load_raw_records(path: Path) -> list[dict]:
     """Load all records from a JSONL file into memory."""
     return list(iter_jsonl(path))
 
-def normalize_image_question_ids(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+_IMAGE_QUESTION_ID_PATTERN = re.compile(r"^(?P<base_id>.+)_q(?P<question_number>\d+)$")
+
+def validate_image_question_ids(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """
-    Ensure each image-question pair has a unique image_id.
+    Validate image-question IDs from prepared raw records.
 
-    If a record already has image_id, base_image_id and question_id,
-    keep it unchanged to avoid double suffix like "_q1_q1".
+    Expected image_id format:
+        <base_image_id>_q<number>
+
+    Example:
+        am_thuc|banh_chung|001_q1
+
+    This function:
+    - does not generate new image_id values
+    - does not append new suffixes
+    - fills base_image_id and question_id if they are missing
+    - raises ValueError if image_id format is invalid
     """
-    counters: dict[str, int] = defaultdict(int)
-    normalized_records: list[dict[str, Any]] = []
+    validated_records: list[dict[str, Any]] = []
 
-    for record in records:
-        existing_image_id = str(record.get("image_id", "")).strip()
-        existing_base_image_id = str(record.get("base_image_id", "")).strip()
-        existing_question_id = str(record.get("question_id", "")).strip()
+    seen_image_ids: set[str] = set()
 
-        if existing_image_id and existing_base_image_id and existing_question_id:
-            normalized_records.append(record)
-            continue
+    for row_idx, record in enumerate(records):
+        image_id = str(record.get("image_id", "")).strip()
 
-        original_image_id = existing_image_id
+        if not image_id:
+            raise ValueError(f"Missing image_id at row {row_idx}")
 
-        if not original_image_id:
-            raise ValueError(f"Missing image_id in record: {record}")
+        match = _IMAGE_QUESTION_ID_PATTERN.match(image_id)
 
-        counters[original_image_id] += 1
-        question_index = counters[original_image_id]
+        if not match:
+            raise ValueError(
+                f"Invalid image_id format at row {row_idx}: {image_id!r}. "
+                "Expected format: <base_image_id>_q<number>, e.g. banh_chung_001_q1"
+            )
 
-        question_id = f"q{question_index}"
-        unique_image_id = f"{original_image_id}_{question_id}"
+        if image_id in seen_image_ids:
+            raise ValueError(f"Duplicate image_id at row {row_idx}: {image_id!r}")
 
-        normalized_records.append({
+        seen_image_ids.add(image_id)
+
+        base_image_id = record.get("base_image_id") or match.group("base_id")
+        question_id = record.get("question_id") or f"q{match.group('question_number')}"
+
+        validated_records.append({
             **record,
-            "base_image_id": original_image_id,
-            "question_id": question_id,
-            "image_id": unique_image_id,
+            "image_id": image_id,
+            "base_image_id": str(base_image_id).strip(),
+            "question_id": str(question_id).strip(),
         })
 
-    return normalized_records
+    return validated_records

@@ -225,11 +225,7 @@ ehthumbs.db
 .prompts/
 
 # Data
-data/viet-cultural-vqa/
-data/tmp
-data/raw/
-data/raw_resized/
-data/external/
+data
 
 # Generated processed data
 data/processed/*.jsonl
