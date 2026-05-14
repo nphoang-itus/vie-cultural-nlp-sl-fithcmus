@@ -25,6 +25,8 @@ class VQARecord(TypedDict):
     image_path: str
     category: str
     keyword: str
+    
+    vision_caption: str
 
     question: str
     standalone_question: str

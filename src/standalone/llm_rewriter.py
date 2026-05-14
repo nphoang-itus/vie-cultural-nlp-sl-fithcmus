@@ -17,22 +17,29 @@ class LLMRewriteResult(NamedTuple):
     success: bool
 
 # [TODO] - Viết lại câu prompt để bao phủ toàn bộ case
-_PROMPT_TEMPLATE = """You are rewriting Vietnamese VQA questions to be standalone.
+_PROMPT_TEMPLATE = """You are rewriting Visual Question Answering questions into standalone Vietnamese questions.
 
-The cultural subject is: {keyword}
+Vision caption:
+{vision_caption}
 
-Original question: {question}
+Original question:
+{question}
 
 Rules:
-- Replace demonstrative pronouns (này, đây, đó) with the keyword.
-- Keep the question meaning identical — do not add extra information.
-- Return ONLY the rewritten question. No explanation, no punctuation changes.
+- Rewrite the original question into a complete Vietnamese standalone question.
+- Use the visual subject from the vision caption as the explicit subject of the question.
+- If the vision caption is in English, translate only the necessary visual subject into Vietnamese before rewriting.
+- If the vision caption is already Vietnamese, keep the rewritten question in Vietnamese.
+- Preserve the original meaning of the question.
+- Do not answer the question.
+- Do not add cultural facts that are not present in the question or caption.
+- Return only the rewritten question.
 
-Rewritten question:"""
+Standalone question:"""
 
 # [TODO] - Tìm phương án tối ưu số lần call API bằng cách gộp nhóm các câu hỏi và truyền bất đồng bộ để gom thành 1 câu prompt
 def rewrite_with_llm(
-    keyword: str,
+    vision_caption: str,
     question: str,
     model: str = "gemini-2.5-flash-lite",
     max_retries: int = 2,
@@ -54,7 +61,10 @@ def rewrite_with_llm(
 
         client = genai.Client(api_key=api_key)
 
-        prompt = _PROMPT_TEMPLATE.format(keyword=keyword, question=question)
+        prompt = _PROMPT_TEMPLATE.format(
+            vision_caption=vision_caption,
+            question=question,
+        )
 
         for attempt in range(1, max_retries + 1):
             try:

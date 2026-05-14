@@ -25,9 +25,10 @@ def process_record(
     Returns a new dict - never mutates the input.
     """
     keyword: str = record.get("keyword", "").strip()
+    vision_caption: str = record.get("vision_caption", "").strip()
     question: str = record.get("question", "").strip()
 
-    # Layer 1: template
+    # Layer 1: template rewrite by keyword.
     template_result = template_rewrite(keyword, question)
 
     if template_result.matched:
@@ -37,29 +38,31 @@ def process_record(
             "rewrite_method": "template",
         }
 
-    # Layer 2: LLM fallback (optional)
+    # Layer 2: LLM fallback using vision_caption + question.
     if use_llm_fallback:
         llm_result = rewrite_with_llm(
-            keyword, question,
+            vision_caption,
+            question,
             model=llm_model,
             max_retries=llm_max_retries,
             timeout=llm_timeout,
         )
+
         if llm_result.success:
             return {
                 **record,
                 "standalone_question": llm_result.standalone_question,
                 "rewrite_method": "llm",
             }
-        else:
-            logger.warning(f"LLM failed for question: {question!r}")
-            return {
-                **record,
-                "standalone_question": question,
-                "rewrite_method": "failed",
-            }
 
-    # Layer 3: keep original
+        logger.warning(f"LLM failed for question: {question!r}")
+        return {
+            **record,
+            "standalone_question": question,
+            "rewrite_method": "failed",
+        }
+
+    # Layer 3: keep original.
     return {
         **record,
         "standalone_question": question,
