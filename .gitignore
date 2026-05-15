@@ -241,3 +241,6 @@ vector_db/
 *.bin
 *.safetensors
 *.ckpt
+
+# Vector database artifacts
+vector_db/chroma/*
