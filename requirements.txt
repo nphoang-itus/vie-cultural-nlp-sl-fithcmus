@@ -5,3 +5,6 @@ google-genai
 huggingface_hub
 Pillow
 tqdm
+sentence-transformers
+torch
+chromadb

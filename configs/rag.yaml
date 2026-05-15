@@ -11,6 +11,7 @@ embedding:
   model_name: "keepitreal/vietnamese-sbert"
   batch_size: 64
   normalize_embeddings: true
+  device: "auto"
 
 retrieval:
   top_k: 3
