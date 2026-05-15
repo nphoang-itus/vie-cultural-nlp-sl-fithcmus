@@ -1,0 +1,25 @@
+knowledge_base:
+  input_path: "data/knowledge/knowledge_base.jsonl"
+  sample_path: "data/knowledge/knowledge_base_sample.jsonl"
+
+vector_db:
+  provider: "chroma"
+  persist_dir: "vector_db/chroma"
+  collection_name: "cultural_knowledge"
+
+embedding:
+  model_name: "keepitreal/vietnamese-sbert"
+  batch_size: 64
+  normalize_embeddings: true
+
+retrieval:
+  top_k: 3
+  score_threshold: null
+
+stats:
+  knowledge_base_validation_stats_path: "data/stats/knowledge_base_validation_stats.json"
+  knowledge_base_stats_path: "data/stats/knowledge_base_stats.json"
+  retrieval_smoke_test_results_path: "data/stats/retrieval_smoke_test_results.json"
+
+logging:
+  level: "INFO"
