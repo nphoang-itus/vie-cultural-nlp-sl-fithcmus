@@ -14,7 +14,7 @@ embedding:
   device: "auto"
 
 retrieval:
-  top_k: 3
+  top_k: 5
   score_threshold: null
 
 stats:
