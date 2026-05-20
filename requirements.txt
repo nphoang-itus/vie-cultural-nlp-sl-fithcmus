@@ -13,3 +13,4 @@ transformers
 gradio # Nếu streamlit k đc thì đổi qua gradio
 peft
 # Thêm cái này: pip install --index-url https://download.pytorch.org/whl/cpu torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0
+accelerate
