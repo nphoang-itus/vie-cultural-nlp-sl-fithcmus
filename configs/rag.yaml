@@ -20,7 +20,7 @@ retrieval:
 inference:
   top_k: 5
   max_context_chars: 3500
-  use_category_filter: true
+  use_category_filter: false
   use_keyword_filter: false
 
 stats:
@@ -30,3 +30,14 @@ stats:
 
 logging:
   level: "INFO"
+
+generation:
+  provider: "huggingface_peft"
+  base_model: "Qwen/Qwen2.5-3B-Instruct"
+  adapter_model: "ohthisischichi/viet-cultural-qa-qwen2.5-lora"
+  device: "auto"
+  torch_dtype: "float16"
+  max_new_tokens: 128
+  temperature: 0.0
+  top_p: 0.9
+  do_sample: false
