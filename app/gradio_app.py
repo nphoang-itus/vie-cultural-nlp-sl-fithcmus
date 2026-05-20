@@ -30,12 +30,12 @@ CONFIG_PATH = "configs/rag.yaml"
 
 # Tham số RAG
 TOP_K = 1
-MAX_CONTEXT_CHARS = 1800
+MAX_CONTEXT_CHARS = 3600
 USE_CATEGORY_FILTER = True
 USE_KEYWORD_FILTER = False
 
 # Tham số Sinh văn bản (Model)
-MAX_NEW_TOKENS = 48
+MAX_NEW_TOKENS = 80
 TEMPERATURE = 0.2
 TOP_P = 0.9
 
@@ -76,11 +76,11 @@ print("✅ Hệ thống đã sẵn sàng hoạt động!")
 def answer_question(
     message: str,
     history: List[Dict[str, str]],
-) -> tuple[list[dict[str, str]], str]:
+) -> tuple[list[dict[str, str]], str, str, str, str]:
     
     message = (message or "").strip()
     if not message:
-        return history, ""
+        return history, "", "", "", ""
 
     try:
         # 1. Quét tài liệu RAG
@@ -96,6 +96,24 @@ def answer_question(
         )
         rag_time = time.perf_counter() - t0
 
+        contexts = rag_output.rag_context.contexts
+        if contexts:
+            context_lines = [
+                f"[{idx}] doc_id={ctx.doc_id} score={ctx.score}"
+                for idx, ctx in enumerate(contexts, start=1)
+            ]
+            context_debug = "\n".join(context_lines)
+        else:
+            context_debug = "(No contexts retrieved)"
+
+        rag_debug = (
+            f"retrieval_query: {rag_output.retrieval_query}\n"
+            f"filters: {rag_output.filters}\n"
+            f"contexts: {len(contexts)}\n"
+            f"{context_debug}\n\n"
+            f"Context block:\n{rag_output.rag_context.context_block}"
+        )
+
         # 2. Sinh câu trả lời từ Model
         t1 = time.perf_counter()
         answer = generator.generate(
@@ -107,6 +125,10 @@ def answer_question(
         gen_time = time.perf_counter() - t1
 
         answer = answer.strip() or "(Không có câu trả lời)"
+        last_period = answer.rfind(".")
+        if last_period != -1:
+            answer = answer[: last_period + 1].strip()
+        raw_answer = answer
         
         # Đính kèm thêm thông tin tốc độ chạy xuống dưới cùng để dễ báo cáo
         meta = f"\n\n*(⏱️ RAG: {rag_time:.2f}s | Sinh chữ: {gen_time:.2f}s)*"
@@ -116,14 +138,20 @@ def answer_question(
             {"role": "user", "content": message},
             {"role": "assistant", "content": answer + meta},
         ]
-        return history, ""
+        return (
+            history,
+            "",
+            rag_debug,
+            rag_output.prompt,
+            raw_answer,
+        )
     
     except Exception as exc:
         history = history + [
             {"role": "user", "content": message},
             {"role": "assistant", "content": f"⚠️ Lỗi hệ thống: {exc}"},
         ]
-        return history, ""
+        return history, "", "", "", ""
 
 
 # ==========================================
@@ -146,10 +174,26 @@ with gr.Blocks(title="Vietnamese Cultural VQA") as demo:
         send = gr.Button("🚀 Gửi", variant="primary", scale=1)
         clear = gr.Button("🗑️ Xóa hội thoại", scale=1)
 
+    with gr.Accordion("RAG / LLM Debug", open=False):
+        rag_context = gr.Textbox(label="RAG: Retrieved context", lines=10)
+        rag_prompt = gr.Textbox(label="RAG: Final prompt", lines=12)
+        llm_output = gr.Textbox(label="LLM: Raw answer", lines=6)
+
     # Gắn sự kiện khi bấm nút hoặc nhấn Enter
-    send.click(answer_question, inputs=[message, chatbot], outputs=[chatbot, message])
-    message.submit(answer_question, inputs=[message, chatbot], outputs=[chatbot, message])
-    clear.click(lambda: ([], ""), outputs=[chatbot, message])
+    send.click(
+        answer_question,
+        inputs=[message, chatbot],
+        outputs=[chatbot, message, rag_context, rag_prompt, llm_output],
+    )
+    message.submit(
+        answer_question,
+        inputs=[message, chatbot],
+        outputs=[chatbot, message, rag_context, rag_prompt, llm_output],
+    )
+    clear.click(
+        lambda: ([], "", "", "", ""),
+        outputs=[chatbot, message, rag_context, rag_prompt, llm_output],
+    )
 
 if __name__ == "__main__":
     demo.launch(theme=gr.themes.Soft())
