@@ -22,6 +22,10 @@ import yaml
 from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer, TextStreamer
 
+from threading import Thread
+from collections.abc import Iterator
+from transformers import TextIteratorStreamer
+
 logger = logging.getLogger(__name__)
 
 
@@ -240,3 +244,58 @@ class QwenLoraGenerator:
                 answer = answer[len(prefix):].strip()
 
         return answer
+    
+    def stream_generate(self, prompt: str) -> Iterator[str]:
+        """
+        Stream generated answer tokens from a full prompt.
+        """
+        prompt = str(prompt or "").strip()
+
+        if not prompt:
+            raise ValueError("prompt cannot be empty.")
+
+        messages = [
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ]
+
+        text = self.tokenizer.apply_chat_template(
+            messages,
+            tokenize=False,
+            add_generation_prompt=True,
+        )
+
+        inputs = self.tokenizer(
+            text,
+            return_tensors="pt",
+        ).to(self.device)
+
+        streamer = TextIteratorStreamer(
+            self.tokenizer,
+            skip_prompt=True,
+            skip_special_tokens=True,
+        )
+
+        generation_kwargs = {
+            **inputs,
+            "streamer": streamer,
+            "max_new_tokens": self.config.max_new_tokens,
+            "do_sample": self.config.do_sample,
+            "pad_token_id": self.tokenizer.eos_token_id,
+        }
+
+        if self.config.do_sample:
+            generation_kwargs["temperature"] = self.config.temperature
+            generation_kwargs["top_p"] = self.config.top_p
+
+        thread = Thread(
+            target=self.model.generate,
+            kwargs=generation_kwargs,
+        )
+
+        thread.start()
+
+        for token in streamer:
+            yield token

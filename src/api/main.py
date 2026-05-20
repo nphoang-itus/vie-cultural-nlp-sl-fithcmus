@@ -5,7 +5,10 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from threading import Lock
 from typing import Any
+import json
+import time
 
+from fastapi.responses import StreamingResponse
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -18,6 +21,7 @@ from src.api.schemas import (
 )
 from src.qa.schemas import QARequest
 from src.qa.service import QAService
+from src.rag.rag_service import RagQAInput
 
 logger = logging.getLogger(__name__)
 
@@ -149,3 +153,102 @@ def _clean_optional(value: str | None) -> str | None:
 
     value = value.strip()
     return value or None
+
+@app.post("/api/qa/stream")
+def stream_answer_question(
+    payload: QAApiRequest,
+    request: Request,
+):
+    qa_service: QAService | None = request.app.state.qa_service
+
+    if qa_service is None:
+        raise HTTPException(
+            status_code=503,
+            detail="QA service is not loaded.",
+        )
+
+    question = payload.question.strip()
+
+    if not question:
+        raise HTTPException(
+            status_code=400,
+            detail="question cannot be empty.",
+        )
+
+    qa_request = QARequest(
+        question=question,
+        normalized_question=_clean_optional(payload.normalized_question),
+        category=_clean_optional(payload.category),
+        keyword=_clean_optional(payload.keyword),
+    )
+
+    def event_stream():
+        try:
+            with generation_lock:
+                # Start timing
+                total_start = time.time()
+                
+                # RAG phase
+                rag_start = time.time()
+                rag_input = RagQAInput(
+                    question=qa_request.question,
+                    normalized_question=qa_request.normalized_question,
+                    category=qa_request.category,
+                    keyword=qa_request.keyword,
+                )
+
+                rag_output = qa_service.rag_service.prepare_prompt(rag_input)
+                rag_time = time.time() - rag_start
+
+                # Send metadata first (with RAG timing)
+                yield f"data: {json.dumps({
+                    'type': 'metadata',
+                    'retrieval_query': rag_output.retrieval_query,
+                    'filters': rag_output.filters,
+                    'contexts': [
+                        {
+                            'doc_id': context.doc_id,
+                            'content': context.content,
+                            'metadata': context.metadata,
+                            'distance': context.distance,
+                            'score': context.score,
+                        }
+                        for context in rag_output.rag_context.contexts
+                    ],
+                    'prompt': rag_output.prompt if payload.debug else None,
+                }, ensure_ascii=False)}\n\n"
+
+                # Generation phase
+                gen_start = time.time()
+                
+                # Stream tokens
+                for token in qa_service.generator.stream_generate(rag_output.prompt):
+                    yield f"data: {json.dumps({
+                        'type': 'token',
+                        'token': token,
+                    }, ensure_ascii=False)}\n\n"
+                
+                gen_time = time.time() - gen_start
+                total_time = time.time() - total_start
+
+                # Send timing and done
+                yield f"data: {json.dumps({
+                    'type': 'done',
+                    'timing': {
+                        'rag_seconds': rag_time,
+                        'generation_seconds': gen_time,
+                        'total_seconds': total_time,
+                    },
+                }, ensure_ascii=False)}\n\n"
+
+        except Exception as exc:
+            logger.exception("Streaming QA failed.")
+            yield f"data: {json.dumps({
+                'type': 'error',
+                'message': str(exc),
+            }, ensure_ascii=False)}\n\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+    )
