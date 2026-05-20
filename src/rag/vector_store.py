@@ -13,9 +13,10 @@ import logging
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import chromadb
+from chromadb.api.types import Embeddings, Metadatas
 
 from src.rag.document import EmbeddingDocument
 
@@ -152,13 +153,14 @@ class ChromaVectorStore:
 
             ids = [doc.doc_id for doc in batch_docs]
             texts = [doc.text for doc in batch_docs]
-            metadatas = [doc.metadata for doc in batch_docs]
+            metadatas: Metadatas = [doc.metadata for doc in batch_docs]
+            chroma_embeddings = cast(Embeddings, batch_embeddings)
 
             self.collection.upsert(
                 ids=ids,
                 documents=texts,
                 metadatas=metadatas,
-                embeddings=batch_embeddings,
+                embeddings=chroma_embeddings,
             )
 
             logger.info("Upserted Chroma docs: %d/%d", end, total)
@@ -189,10 +191,10 @@ class ChromaVectorStore:
             include=["documents", "metadatas", "distances"],
         )
 
-        ids = result.get("ids", [[]])[0]
-        documents = result.get("documents", [[]])[0]
-        metadatas = result.get("metadatas", [[]])[0]
-        distances = result.get("distances", [[]])[0]
+        ids = (result.get("ids") or [[]])[0]
+        documents = (result.get("documents") or [[]])[0]
+        metadatas = (result.get("metadatas") or [[]])[0]
+        distances = (result.get("distances") or [[]])[0]
 
         results: list[VectorSearchResult] = []
 
@@ -219,7 +221,7 @@ class ChromaVectorStore:
 
     def peek(self, limit: int = 5) -> dict[str, Any]:
         """Return a small collection sample for debugging."""
-        return self.collection.peek(limit=limit)
+        return dict(self.collection.peek(limit=limit))
 
 
 def delete_chroma_persist_dir(persist_dir: Path) -> None:

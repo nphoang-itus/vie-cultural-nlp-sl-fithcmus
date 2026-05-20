@@ -140,6 +140,25 @@ def resolve_validation_stats_output_path(
     return Path(str(path))
 
 
+def coerce_metadata_int(value: Any) -> int:
+    if value is None:
+        return 0
+
+    if isinstance(value, bool):
+        return int(value)
+
+    if isinstance(value, (int, float)):
+        return int(value)
+
+    if isinstance(value, str):
+        try:
+            return int(value)
+        except ValueError:
+            return 0
+
+    return 0
+
+
 def build_vector_db_stats(
     *,
     input_path: Path,
@@ -163,10 +182,10 @@ def build_vector_db_stats(
         keywords[str(doc.metadata.get("keyword", ""))] += 1
 
         content_lengths_words.append(
-            int(doc.metadata.get("content_length_words", 0) or 0)
+            coerce_metadata_int(doc.metadata.get("content_length_words"))
         )
         content_lengths_chars.append(
-            int(doc.metadata.get("content_length_chars", 0) or 0)
+            coerce_metadata_int(doc.metadata.get("content_length_chars"))
         )
 
     def safe_min(values: list[int]) -> int:

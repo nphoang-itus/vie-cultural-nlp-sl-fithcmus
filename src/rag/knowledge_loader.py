@@ -41,7 +41,7 @@ class KnowledgeMetadata(TypedDict, total=False):
 
 
 class KnowledgeDocument(TypedDict):
-    schema_version: str
+    schema_version: str # [TODO] Cân nhắc bỏ trường này
     doc_id: str
     content: str
     metadata: KnowledgeMetadata

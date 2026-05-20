@@ -10,6 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from chromadb.api.types import Metadata
+
 from src.rag.knowledge_loader import KnowledgeDocument
 
 
@@ -21,7 +23,7 @@ class EmbeddingDocument:
 
     doc_id: str
     text: str
-    metadata: dict[str, Any]
+    metadata: Metadata
 
 
 def count_words(text: str) -> int:
@@ -32,7 +34,7 @@ def count_words(text: str) -> int:
     return len(text.split())
 
 
-def normalize_metadata_for_chroma(metadata: dict[str, Any]) -> dict[str, Any]:
+def normalize_metadata_for_chroma(metadata: dict[str, Any]) -> Metadata:
     """
     Normalize metadata into Chroma-compatible scalar values.
 
@@ -41,7 +43,7 @@ def normalize_metadata_for_chroma(metadata: dict[str, Any]) -> dict[str, Any]:
 
     Lists such as source_image_ids are converted into a stable string.
     """
-    normalized: dict[str, Any] = {}
+    normalized: Metadata = {}
 
     for key, value in metadata.items():
         if isinstance(value, list):
