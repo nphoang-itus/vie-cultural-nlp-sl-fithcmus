@@ -73,7 +73,7 @@ class EmbeddingModel:
             device=self.device,
         )
 
-        self.embedding_dimension = self.model.get_sentence_embedding_dimension()
+        self.embedding_dimension = self.model.get_embedding_dimension()
 
         logger.info(
             "Loaded embedding model: %s | dimension=%s",
