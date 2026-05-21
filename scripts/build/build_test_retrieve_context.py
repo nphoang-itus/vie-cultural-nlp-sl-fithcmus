@@ -9,7 +9,7 @@ from typing import Any
 
 from tqdm import tqdm
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.rag.retriever import CulturalKnowledgeRetriever
 from src.rag.keyword_normalizer import (

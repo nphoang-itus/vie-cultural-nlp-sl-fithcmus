@@ -17,7 +17,7 @@ from pathlib import Path
 
 import yaml
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.rag.document import to_embedding_documents
 from src.rag.embedding import build_embedding_model_from_config
