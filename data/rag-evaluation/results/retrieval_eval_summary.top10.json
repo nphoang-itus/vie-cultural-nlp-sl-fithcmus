@@ -1,0 +1,14 @@
+{
+  "total": 10054,
+  "top_k": 10,
+  "no_result_count": 0,
+  "no_result_rate": 0.0,
+  "top1_keyword_accuracy": 0.6889,
+  "topk_keyword_accuracy": 0.8788,
+  "top1_category_accuracy": 0.9339,
+  "topk_category_accuracy": 0.9766,
+  "mrr_keyword": 0.7532,
+  "mrr_category": 0.9491,
+  "avg_top1_score": 0.635085,
+  "avg_top1_distance": 0.364915
+}

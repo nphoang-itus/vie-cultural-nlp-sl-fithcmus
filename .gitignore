@@ -227,6 +227,7 @@ ehthumbs.db
 
 # Data
 data
+!data/rag-evaluation/
 
 # Generated processed data
 data/processed/*.jsonl
