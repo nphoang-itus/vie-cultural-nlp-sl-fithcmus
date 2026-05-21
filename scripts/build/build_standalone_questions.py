@@ -26,7 +26,7 @@ from pathlib import Path
 import sys
 
 # Add parent directory to path so we can import src
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.utils.config import get_config
 from src.data.loader import load_raw_records, validate_image_question_ids

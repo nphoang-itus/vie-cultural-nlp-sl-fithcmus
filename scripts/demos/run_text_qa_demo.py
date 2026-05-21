@@ -23,7 +23,7 @@ import sys
 from pathlib import Path
 import time
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.qa.schemas import QARequest
 from src.qa.service import QAService

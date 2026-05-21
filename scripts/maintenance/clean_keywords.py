@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Any, Callable
 import sys
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.data.io import write_json, write_jsonl
 from src.rag.keyword_normalizer import (

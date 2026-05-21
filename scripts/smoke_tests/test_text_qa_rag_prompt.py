@@ -2,7 +2,7 @@ import sys
 import os
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).parent.parent
+REPO_ROOT = Path(__file__).resolve().parents[2]
 VENV_PYTHON = REPO_ROOT / ".venv" / "bin" / "python"
 
 if VENV_PYTHON.exists() and sys.prefix == sys.base_prefix:
