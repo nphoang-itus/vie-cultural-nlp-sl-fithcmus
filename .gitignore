@@ -228,11 +228,7 @@ ehthumbs.db
 # Data
 data
 !data/rag-evaluation/
-
-# Generated processed data
-data/processed/*.jsonl
-data/stats/*.json
-data/stats/*.csv
+!data/stats/
 
 # Large artifacts
 models/
@@ -246,3 +242,5 @@ vector_db/
 
 # Vector database artifacts
 vector_db/chroma/*
+
+.latex
