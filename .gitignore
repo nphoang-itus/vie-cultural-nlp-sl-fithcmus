@@ -226,7 +226,7 @@ ehthumbs.db
 .prompts/
 
 # Data
-data
+/data
 !data/rag-evaluation/
 !data/stats/
 
