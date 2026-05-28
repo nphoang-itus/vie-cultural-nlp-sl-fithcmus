@@ -147,10 +147,10 @@ class RagService:
     def _build_filters(self, data: RagQAInput) -> dict[str, Any] | None:
         conditions: list[dict[str, Any]] = []
 
-        if self.use_category_filter and data.category:
+        if data.category:
             conditions.append({"category": data.category})
 
-        if self.use_keyword_filter and data.keyword:
+        if data.keyword:
             conditions.append({"keyword": data.keyword})
 
         if not conditions:

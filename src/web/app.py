@@ -10,7 +10,18 @@ import streamlit as st
 
 
 API_BASE_URL = "http://127.0.0.1:8000"
-GREETING = "Xin chào! Hãy hỏi mình một câu về văn hóa Việt Nam."
+SUPPORTED_DOMAINS = [
+    ("kien_truc", "Kiến trúc"),
+    ("am_thuc", "Ẩm thực"),
+    ("trang_phuc", "Trang phục"),
+    ("le_hoi", "Lễ hội"),
+    ("nhac_cu", "Nhạc cụ"),
+    ("the_thao_truyen_thong", "Thể thao"),
+]
+SUPPORTED_DOMAIN_LABELS = ", ".join(label for _, label in SUPPORTED_DOMAINS)
+GREETING = (
+    "Xin chào! Đây là hệ thống hỗ trợ hỏi đáp về văn hóa Việt Nam"
+)
 
 
 st.set_page_config(
@@ -93,6 +104,39 @@ def inject_custom_css() -> None:
                 border-bottom: 1px solid var(--border);
                 margin: 0 0 1rem;
                 padding: 56px 0 32px;
+            }
+
+            .scope-note {
+                background: #ffffff;
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                color: var(--text);
+                font-size: 0.9rem;
+                line-height: 1.55;
+                margin-top: 0.95rem;
+                padding: 10px 12px;
+            }
+
+            .scope-note strong {
+                color: #1f2937;
+                font-weight: 700;
+            }
+
+            .sidebar-note {
+                background: #ffffff;
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                color: var(--muted);
+                font-size: 0.86rem;
+                line-height: 1.5;
+                margin: 0.35rem 0 0.8rem;
+                padding: 10px 12px;
+            }
+
+            .selected-category {
+                color: var(--muted);
+                font-size: 0.84rem;
+                margin: 0.1rem 0 0.45rem;
             }
 
             .chat-shell {
@@ -324,12 +368,59 @@ def inject_custom_css() -> None:
                 border-color: var(--border);
                 border-radius: 999px;
                 box-shadow: none;
+                color: #111827 !important;
                 font-weight: 600;
+            }
+
+            .stButton > button *,
+            .stButton > button p,
+            .stButton > button span {
+                color: #111827 !important;
+            }
+
+            .stButton > button[kind="primary"],
+            .stButton button[data-testid="stBaseButton-primary"],
+            .stButton button[class*="primary"] {
+                background: #1d4ed8 !important;
+                border-color: #1d4ed8 !important;
+                color: #ffffff !important;
+            }
+
+            .stButton > button[kind="primary"] *,
+            .stButton > button[kind="primary"] p,
+            .stButton > button[kind="primary"] span,
+            .stButton button[data-testid="stBaseButton-primary"] *,
+            .stButton button[data-testid="stBaseButton-primary"] p,
+            .stButton button[data-testid="stBaseButton-primary"] span,
+            .stButton button[class*="primary"] *,
+            .stButton button[class*="primary"] p,
+            .stButton button[class*="primary"] span {
+                color: #ffffff !important;
             }
 
             .stButton > button:hover {
                 border-color: var(--border);
                 color: var(--accent-coral);
+            }
+
+            .stButton > button[kind="primary"]:hover,
+            .stButton button[data-testid="stBaseButton-primary"]:hover,
+            .stButton button[class*="primary"]:hover {
+                background: #1e40af !important;
+                border-color: #1e40af !important;
+                color: #ffffff !important;
+            }
+
+            .stButton > button[kind="primary"]:hover *,
+            .stButton > button[kind="primary"]:hover p,
+            .stButton > button[kind="primary"]:hover span,
+            .stButton button[data-testid="stBaseButton-primary"]:hover *,
+            .stButton button[data-testid="stBaseButton-primary"]:hover p,
+            .stButton button[data-testid="stBaseButton-primary"]:hover span,
+            .stButton button[class*="primary"]:hover *,
+            .stButton button[class*="primary"]:hover p,
+            .stButton button[class*="primary"]:hover span {
+                color: #ffffff !important;
             }
 
             [data-testid="stExpander"],
@@ -441,6 +532,9 @@ def init_session_state() -> None:
             }
         ]
 
+    if "selected_category" not in st.session_state:
+        st.session_state.selected_category = ""
+
 
 def next_message_id() -> str:
     message_id = str(st.session_state.message_counter)
@@ -466,6 +560,50 @@ def build_payload(
         payload["keyword"] = keyword.strip()
 
     return payload
+
+
+def render_category_filter_buttons() -> str:
+    selected_category = str(st.session_state.get("selected_category") or "")
+
+    st.markdown("**Category filter**")
+    selected_label = "Tất cả lĩnh vực"
+    for category_id, label in SUPPORTED_DOMAINS:
+        if category_id == selected_category:
+            selected_label = f"{label} ({category_id})"
+            break
+    st.markdown(
+        f'<div class="selected-category">Đang chọn: {html.escape(selected_label)}</div>',
+        unsafe_allow_html=True,
+    )
+
+    if st.button(
+        "✓ Tất cả" if not selected_category else "Tất cả",
+        key="category_all",
+        width="stretch",
+        type="primary" if not selected_category else "secondary",
+    ):
+        st.session_state.selected_category = ""
+        st.rerun()
+
+    for index in range(0, len(SUPPORTED_DOMAINS), 2):
+        columns = st.columns(2)
+        for column, (category_id, label) in zip(
+            columns,
+            SUPPORTED_DOMAINS[index : index + 2],
+            strict=False,
+        ):
+            with column:
+                if st.button(
+                    f"✓ {label}" if selected_category == category_id else label,
+                    key=f"category_{category_id}",
+                    width="stretch",
+                    type="primary" if selected_category == category_id else "secondary",
+                    help=category_id,
+                ):
+                    st.session_state.selected_category = category_id
+                    st.rerun()
+
+    return str(st.session_state.get("selected_category") or "")
 
 
 def parse_sse_event(line: str) -> dict[str, Any] | None:
@@ -724,11 +862,7 @@ with st.sidebar:
 
     st.divider()
 
-    category = st.text_input(
-        "Category filter",
-        value="",
-        placeholder="am_thuc",
-    )
+    category = render_category_filter_buttons()
 
     keyword = st.text_input(
         "Keyword filter",
@@ -757,6 +891,10 @@ st.markdown(
         <div class="chat-title-wrap">
             <h1 class="chat-title">Vietnamese Cultural QA</h1>
             <p class="chat-caption">Text-only RAG + Qwen2.5 LoRA</p>
+            <div class="scope-note">
+                <strong>Phạm vi hỗ trợ:</strong> Các lĩnh vực
+                Kiến trúc, Ẩm thực, Trang phục, Lễ hội, Nhạc cụ, Thể thao truyền thống.
+            </div>
         </div>
     </div>
     """,

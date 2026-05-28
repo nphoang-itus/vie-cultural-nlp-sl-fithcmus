@@ -27,17 +27,28 @@ def build_text_qa_rag_prompt(
         raise ValueError("question cannot be empty.")
 
     if not rag_context:
-        rag_context = (
-            "Không có ngữ cảnh truy xuất phù hợp. "
-            "Hãy trả lời thận trọng và nói rõ nếu không đủ thông tin."
-        )
+        return f"""Bạn là trợ lý trả lời câu hỏi về văn hóa Việt Nam.
+
+Không có ngữ cảnh văn hóa đủ liên quan được truy xuất từ cơ sở tri thức.
+
+Nhiệm vụ:
+- Trả lời bằng tiếng Việt.
+- Không suy đoán hoặc bịa chi tiết văn hóa khi không có ngữ cảnh đáng tin cậy.
+- Đây là bài toán hỏi đáp văn bản, không có ảnh đầu vào. Không dùng các cụm như "ảnh", "hình ảnh", "trong ảnh", "ảnh chụp", "nhìn thấy", "cho thấy" hoặc mô tả thị giác.
+- Nếu câu hỏi nằm ngoài phạm vi văn hóa Việt Nam hoặc quá chung chung, hãy nói ngắn gọn rằng bạn có thể hỗ trợ trả lời các câu hỏi về văn hóa Việt Nam.
+- Nếu câu hỏi có vẻ thuộc phạm vi văn hóa Việt Nam nhưng thiếu dữ liệu truy xuất, hãy nói rằng bạn chưa có đủ thông tin trong cơ sở tri thức để trả lời chắc chắn.
+
+Câu hỏi:
+{question}""".strip()
 
     return f"""Bạn là trợ lý trả lời câu hỏi về văn hóa Việt Nam dựa trên tri thức truy xuất được.
 
 Nhiệm vụ:
 - Trả lời bằng tiếng Việt.
-- Ưu tiên sử dụng thông tin trong phần Ngữ cảnh văn hóa.
-- Nếu ngữ cảnh không đủ, hãy nói rõ rằng thông tin truy xuất chưa đủ.
+- Chỉ sử dụng các thông tin có trong phần Ngữ cảnh văn hóa khi trả lời nội dung văn hóa cụ thể.
+- Đây là bài toán hỏi đáp văn bản, không có ảnh đầu vào. Không dùng các cụm như "ảnh", "hình ảnh", "trong ảnh", "ảnh chụp", "nhìn thấy", "cho thấy" hoặc mô tả thị giác.
+- Không mặc định context đầu tiên là đúng nhất; hãy tổng hợp các context liên quan trực tiếp nhất với câu hỏi và ưu tiên chủ đề tổng quát khi câu hỏi mang tính tìm hiểu chung.
+- Nếu ngữ cảnh không trực tiếp hỗ trợ câu trả lời, hãy nói rõ rằng thông tin truy xuất chưa đủ.
 - Không bịa thêm chi tiết ngoài ngữ cảnh nếu không chắc chắn.
 - Câu trả lời nên ngắn gọn, đúng trọng tâm và phù hợp với câu hỏi.
 
@@ -45,9 +56,7 @@ Câu hỏi:
 {question}
 
 Ngữ cảnh văn hóa:
-{rag_context}
-
-Câu trả lời:""".strip()
+{rag_context}""".strip()
 
 
 # Backward-compatible alias.
