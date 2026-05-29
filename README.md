@@ -8,7 +8,7 @@
 
 ## [Explore the docs »](https://drive.google.com/drive/folders/1JCl41_UU0UmK7-XXDJo-MhzRRdwTVRBX?usp=drive_link)
 
-[View Base Model](https://huggingface.co/search/full-text) · [View LoRA adapter](https://huggingface.co/ohthisischichi/viet-cultural-qa-qwen2.5-lora) · [View Raw Data](https://huggingface.co/datasets/Dangindev/viet-cultural-vqa)
+[View Base Model](https://huggingface.co/Qwen) · [View LoRA adapter](https://huggingface.co/ohthisischichi/viet-cultural-qa-qwen2.5-lora) · [View Raw Data](https://huggingface.co/datasets/Dangindev/viet-cultural-vqa)
 
 </div>
 
