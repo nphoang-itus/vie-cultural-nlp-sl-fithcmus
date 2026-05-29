@@ -5,8 +5,8 @@ Usage:
   python scripts/generate_rag_report.py \
     --validation-stats data/stats/knowledge_base_validation_stats.json \
     --kb-stats data/stats/knowledge_base_stats.json \
-    --retrieval-stats data/stats/retrieval_smoke_test_results.json \
-    --retrieval-filtered-stats data/stats/retrieval_smoke_test_results_with_category_filter.json \
+    --retrieval-stats data/rag-evaluation/results/retrieval_eval_summary.json \
+    --retrieval-filtered-stats data/rag-evaluation/results/retrieval_eval_summary.category_filter.json \
     --json-output data/stats/rag_report.json \
     --md-output data/stats/rag_report.md
 """
@@ -43,13 +43,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--retrieval-stats",
         type=Path,
-        default=Path("data/stats/retrieval_smoke_test_results.json"),
+        default=Path("data/rag-evaluation/results/retrieval_eval_summary.json"),
     )
 
     parser.add_argument(
         "--retrieval-filtered-stats",
         type=Path,
-        default=Path("data/stats/retrieval_smoke_test_results_with_category_filter.json"),
+        default=Path("data/rag-evaluation/results/retrieval_eval_summary.category_filter.json"),
     )
 
     parser.add_argument(
@@ -105,6 +105,13 @@ def get_nested(data: dict[str, Any], path: list[str], default: Any = None) -> An
         current = current.get(key)
 
     return default if current is None else current
+
+
+def get_retrieval_summary(data: dict[str, Any]) -> dict[str, Any]:
+    summary = data.get("summary")
+    if isinstance(summary, dict):
+        return summary
+    return data
 
 
 def pass_fail(condition: bool) -> str:
@@ -163,11 +170,11 @@ def build_report(
         ),
     }
 
-    retrieval_summary = get_nested(retrieval_stats, ["summary"], {}) or {}
+    retrieval_summary = get_retrieval_summary(retrieval_stats)
 
     retrieval = {
         "input_missing": retrieval_missing,
-        "total_queries": retrieval_summary.get("total_queries"),
+        "total_queries": retrieval_summary.get("total_queries", retrieval_summary.get("total")),
         "top_k": retrieval_summary.get("top_k"),
         "no_result_count": retrieval_summary.get("no_result_count"),
         "top1_keyword_accuracy": retrieval_summary.get("top1_keyword_accuracy"),
@@ -184,11 +191,11 @@ def build_report(
         ),
     }
 
-    filtered_summary = get_nested(retrieval_filtered_stats, ["summary"], {}) or {}
+    filtered_summary = get_retrieval_summary(retrieval_filtered_stats)
 
     retrieval_with_filter = {
         "input_missing": retrieval_filtered_missing,
-        "total_queries": filtered_summary.get("total_queries"),
+        "total_queries": filtered_summary.get("total_queries", filtered_summary.get("total")),
         "top_k": filtered_summary.get("top_k"),
         "no_result_count": filtered_summary.get("no_result_count"),
         "top1_keyword_accuracy": filtered_summary.get("top1_keyword_accuracy"),

@@ -3,9 +3,9 @@ Evaluate retrieval quality using retrieval eval query JSONL files.
 
 Usage:
   python scripts/evaluation/evaluate_retrieval.py \
-    --input data/evaluation/retrieval_eval_queries.jsonl \
-    --output-results data/evaluation/results/retrieval_eval_results.jsonl \
-    --output-summary data/evaluation/results/retrieval_eval_summary.json \
+    --input data/rag-evaluation/retrieval_eval_queries.jsonl \
+    --output-results data/rag-evaluation/results/retrieval_eval_results.jsonl \
+    --output-summary data/rag-evaluation/results/retrieval_eval_summary.json \
     --top-k 5
 """
 
@@ -35,19 +35,19 @@ def parse_args() -> argparse.Namespace:
         "--queries",
         dest="input",
         type=Path,
-        default=Path("data/evaluation/retrieval_eval_queries.jsonl"),
+        default=Path("data/rag-evaluation/retrieval_eval_queries.jsonl"),
         help="Retrieval eval query JSONL path.",
     )
     parser.add_argument(
         "--output-results",
         type=Path,
-        default=Path("data/evaluation/results/retrieval_eval_results.jsonl"),
+        default=Path("data/rag-evaluation/results/retrieval_eval_results.jsonl"),
         help="Per-query result JSONL output path.",
     )
     parser.add_argument(
         "--output-summary",
         type=Path,
-        default=Path("data/evaluation/results/retrieval_eval_summary.json"),
+        default=Path("data/rag-evaluation/results/retrieval_eval_summary.json"),
         help="Summary metrics JSON output path.",
     )
     parser.add_argument(
@@ -339,7 +339,8 @@ def main() -> None:
     per_query_results = []
 
     for idx, row in enumerate(eval_queries, start=1):
-        logger.info("Evaluating query %d/%d", idx, len(eval_queries))
+        if idx == 1 or idx == len(eval_queries) or idx % 500 == 0:
+            logger.info("Evaluating query %d/%d", idx, len(eval_queries))
         per_query_results.append(
             evaluate_one_query(
                 retriever,

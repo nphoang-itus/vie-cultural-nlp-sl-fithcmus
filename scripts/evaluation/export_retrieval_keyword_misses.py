@@ -26,14 +26,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--input",
         type=Path,
-        default=Path("data/evaluation/results/retrieval_eval_results.category_filter.jsonl"),
+        default=Path("data/rag-evaluation/results/retrieval_eval_results.category_filter.jsonl"),
         help="Retrieval eval results JSONL path.",
     )
     parser.add_argument(
         "--output",
         type=Path,
         default=Path(
-            "data/evaluation/results/retrieval_eval_keyword_misses.category_filter.jsonl"
+            "data/rag-evaluation/results/retrieval_eval_keyword_misses.category_filter.jsonl"
         ),
         help="Output JSONL path for keyword misses.",
     )

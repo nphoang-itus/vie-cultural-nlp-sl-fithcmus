@@ -28,7 +28,7 @@ def parse_args() -> argparse.Namespace:
         "--input",
         type=Path,
         default=Path(
-            "data/evaluation/results/retrieval_eval_keyword_misses.category_filter.top10.jsonl"
+            "data/rag-evaluation/results/retrieval_eval_keyword_misses.category_filter.top10.jsonl"
         ),
         help="Keyword misses JSONL path.",
     )
@@ -36,7 +36,7 @@ def parse_args() -> argparse.Namespace:
         "--representatives-output",
         type=Path,
         default=Path(
-            "data/evaluation/results/retrieval_eval_keyword_misses.category_filter.top10.representative.jsonl"
+            "data/rag-evaluation/results/retrieval_eval_keyword_misses.category_filter.top10.representative.jsonl"
         ),
         help="Output JSONL path for representative cases.",
     )
@@ -44,7 +44,7 @@ def parse_args() -> argparse.Namespace:
         "--report-output",
         type=Path,
         default=Path(
-            "data/evaluation/results/retrieval_eval_keyword_misses.category_filter.top10.error_analysis.md"
+            "data/rag-evaluation/results/retrieval_eval_keyword_misses.category_filter.top10.error_analysis.md"
         ),
         help="Markdown report output path.",
     )

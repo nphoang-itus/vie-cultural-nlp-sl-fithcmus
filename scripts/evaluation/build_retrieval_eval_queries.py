@@ -68,25 +68,25 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--train-output",
         type=Path,
-        default=Path("data/evaluation/retrieval_eval_train_sanity.jsonl"),
+        default=Path("data/rag-evaluation/retrieval_eval_train_sanity.jsonl"),
         help="Output JSONL path for train sanity queries.",
     )
     parser.add_argument(
         "--val-output",
         type=Path,
-        default=Path("data/evaluation/retrieval_eval_val.jsonl"),
+        default=Path("data/rag-evaluation/retrieval_eval_val.jsonl"),
         help="Output JSONL path for validation queries.",
     )
     parser.add_argument(
         "--test-output",
         type=Path,
-        default=Path("data/evaluation/retrieval_eval_test.jsonl"),
+        default=Path("data/rag-evaluation/retrieval_eval_test.jsonl"),
         help="Output JSONL path for test queries.",
     )
     parser.add_argument(
         "--combined-output",
         type=Path,
-        default=Path("data/evaluation/retrieval_eval_queries.jsonl"),
+        default=Path("data/rag-evaluation/retrieval_eval_queries.jsonl"),
         help="Output JSONL path for combined val+test queries.",
     )
     parser.add_argument(

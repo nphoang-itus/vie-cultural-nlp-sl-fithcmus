@@ -1,8 +1,32 @@
 # Vietnamese Cultural QA with RAG
+---
+<div align="center">
+  <img src="docs/img/web-demo.png" alt="Vietnamese Cultural QA Demo" width="100%" />
+</div>
+
+<div align="center">
+
+## [Explore the docs »](https://drive.google.com/drive/folders/1JCl41_UU0UmK7-XXDJo-MhzRRdwTVRBX?usp=drive_link)
+
+[View Base Model](https://huggingface.co/search/full-text) · [View LoRA adapter](https://huggingface.co/ohthisischichi/viet-cultural-qa-qwen2.5-lora) · [View Raw Data](https://huggingface.co/datasets/Dangindev/viet-cultural-vqa)
+
+</div>
+
+---
 
 This repository contains a text-only Vietnamese cultural question answering system. The runtime pipeline is no longer Visual Question Answering: users provide a Vietnamese question, the system retrieves relevant cultural knowledge from ChromaDB, builds a RAG prompt, and generates an answer with Qwen2.5 plus a LoRA adapter.
 
 The original data still comes from the `Dangindev/viet-cultural-vqa` dataset, but images and captions are now mainly used during data processing for standalone-question rewriting and traceability. The current API and web app do not accept images as runtime input.
+
+## Tech Stack
+
+<div align="center">
+
+|![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white) | ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white) | ![Hugging Face](https://img.shields.io/badge/Hugging%20Face-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black) | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white) |
+|:---:|:---:|:---:|:---:|
+| ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white) | ![ChromaDB](https://img.shields.io/badge/ChromaDB-003B57?style=for-the-badge) | ![SBERT](https://img.shields.io/badge/Sentence%20Transformers-003B57?style=for-the-badge) | ![Qwen](https://img.shields.io/badge/Qwen%202.5%20LoRA-FF6B00?style=for-the-badge) |
+
+</div>
 
 ## Objective
 
@@ -39,17 +63,36 @@ Valid categories in the current code:
 ## Current Architecture
 
 ```mermaid
-flowchart TD
-    U[User question] --> API[FastAPI / Streamlit]
-    API --> QA[QAService]
-    QA --> RAG[RagService]
-    RAG --> EMB[Vietnamese SBERT embedding]
-    EMB --> VDB[(ChromaDB cultural_knowledge)]
-    VDB --> CTX[Top-k cultural contexts]
-    CTX --> PROMPT[Text QA RAG prompt]
-    PROMPT --> GEN[Qwen2.5 + LoRA generator]
-    GEN --> ANS[Vietnamese answer]
-    ANS --> API
+graph TD
+    A["User Question<br/>Streamlit Web UI<br/>src/web/app.py"] -->|POST /api/qa| B["FastAPI<br/>Port 8000<br/>src/api/main.py"]
+    
+    B -->|Request| C["QA Service<br/>Orchestration<br/>src/qa/service.py"]
+    
+    C -->|Prepare| D["RAG Service<br/>src/rag/rag_service.py"]
+    C -->|Generate| E["Qwen LoRA Generator<br/>src/llm/qwen_lora_generator.py"]
+    
+    D -->|Question + Filters| F["Retriever<br/>SBERT Embedding<br/>src/rag/retriever.py"]
+    
+    F -->|768-dim Vector| G["ChromaDB<br/>Vector Database<br/>vector_db/chroma"]
+    
+    G -->|Top-k Docs| F
+    F -->|Contexts + Scores| D
+    
+    D -->|RAG Prompt| E
+    
+    E -->|Answer| C
+    
+    C -->|Response JSON| B
+    B -->|JSON Response| A
+    A -->|Display Answer| A
+    
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#f3e5f5
+    style D fill:#e8f5e9
+    style E fill:#fce4ec
+    style F fill:#e0f2f1
+    style G fill:#fff9c4
 ```
 
 Important runtime modules:
@@ -299,10 +342,10 @@ python scripts/evaluation/build_retrieval_eval_queries.py
 Default outputs:
 
 ```text
-data/evaluation/retrieval_eval_train_sanity.jsonl
-data/evaluation/retrieval_eval_val.jsonl
-data/evaluation/retrieval_eval_test.jsonl
-data/evaluation/retrieval_eval_queries.jsonl
+data/rag-evaluation/retrieval_eval_train_sanity.jsonl
+data/rag-evaluation/retrieval_eval_val.jsonl
+data/rag-evaluation/retrieval_eval_test.jsonl
+data/rag-evaluation/retrieval_eval_queries.jsonl
 ```
 
 Each item uses this schema:
@@ -323,9 +366,9 @@ Each item uses this schema:
 
 ```bash
 python scripts/evaluation/evaluate_retrieval.py \
-  --input data/evaluation/retrieval_eval_queries.jsonl \
-  --output-results data/evaluation/results/retrieval_eval_results.jsonl \
-  --output-summary data/evaluation/results/retrieval_eval_summary.json \
+  --input data/rag-evaluation/retrieval_eval_queries.jsonl \
+  --output-results data/rag-evaluation/results/retrieval_eval_results.jsonl \
+  --output-summary data/rag-evaluation/results/retrieval_eval_summary.json \
   --top-k 5
 ```
 
@@ -333,9 +376,9 @@ With category filtering:
 
 ```bash
 python scripts/evaluation/evaluate_retrieval.py \
-  --input data/evaluation/retrieval_eval_queries.jsonl \
-  --output-results data/evaluation/results/retrieval_eval_results.category_filter.jsonl \
-  --output-summary data/evaluation/results/retrieval_eval_summary.category_filter.json \
+  --input data/rag-evaluation/retrieval_eval_queries.jsonl \
+  --output-results data/rag-evaluation/results/retrieval_eval_results.category_filter.jsonl \
+  --output-summary data/rag-evaluation/results/retrieval_eval_summary.category_filter.json \
   --top-k 5 \
   --use-category-filter
 ```
@@ -357,20 +400,20 @@ Export keyword misses:
 
 ```bash
 python scripts/evaluation/export_retrieval_keyword_misses.py \
-  --input data/evaluation/results/retrieval_eval_results.category_filter.jsonl \
-  --output data/evaluation/results/retrieval_eval_keyword_misses.category_filter.jsonl
+  --input data/rag-evaluation/results/retrieval_eval_results.category_filter.jsonl \
+  --output data/rag-evaluation/results/retrieval_eval_keyword_misses.category_filter.jsonl
 ```
 
 Build top-10 representative error analysis:
 
 ```bash
 python scripts/evaluation/export_retrieval_keyword_misses.py \
-  --input data/evaluation/results/retrieval_eval_results.category_filter.top10.jsonl \
-  --output data/evaluation/results/retrieval_eval_keyword_misses.category_filter.top10.jsonl \
+  --input data/rag-evaluation/results/retrieval_eval_results.category_filter.top10.jsonl \
+  --output data/rag-evaluation/results/retrieval_eval_keyword_misses.category_filter.top10.jsonl \
   --top-n 10
 
 python scripts/evaluation/build_retrieval_error_analysis.py \
-  --input data/evaluation/results/retrieval_eval_keyword_misses.category_filter.top10.jsonl \
+  --input data/rag-evaluation/results/retrieval_eval_keyword_misses.category_filter.top10.jsonl \
   --num-cases 30 \
   --top-n 20
 ```
@@ -402,7 +445,7 @@ python scripts/smoke_tests/test_qa_service.py
 │   ├── processed/
 │   ├── knowledge/
 │   ├── stats/
-│   └── rag-evaluation/ or evaluation/
+│   └── rag-evaluation/
 ├── scripts/
 │   ├── build/
 │   │   ├── build_standalone_questions.py
