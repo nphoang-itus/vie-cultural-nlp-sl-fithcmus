@@ -83,14 +83,6 @@ graph TD
     C -->|Response JSON| B
     B -->|JSON Response| A
     A -->|Display Answer| A
-    
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style C fill:#f3e5f5
-    style D fill:#e8f5e9
-    style E fill:#fce4ec
-    style F fill:#e0f2f1
-    style G fill:#fff9c4
 ```
 
 Important runtime modules:
