@@ -14,6 +14,19 @@
 
 ---
 
+<div align="center">
+  <img src="docs/img/web-demo.png" alt="Vietnamese Cultural QA Demo" width="100%" />
+</div>
+
+<div align="center">
+
+## [Explore the docs »](https://drive.google.com/drive/folders/1JCl41_UU0UmK7-XXDJo-MhzRRdwTVRBX?usp=drive_link)
+
+[View Base Model](https://huggingface.co/search/full-text) · [View LoRA adapter](https://huggingface.co/ohthisischichi/viet-cultural-qa-qwen2.5-lora) · [View Raw Data](https://huggingface.co/datasets/Dangindev/viet-cultural-vqa)
+
+</div>
+
+
 This repository contains a text-only Vietnamese cultural question answering system. The runtime pipeline is no longer Visual Question Answering: users provide a Vietnamese question, the system retrieves relevant cultural knowledge from ChromaDB, builds a RAG prompt, and generates an answer with Qwen2.5 plus a LoRA adapter.
 
 The original data still comes from the `Dangindev/viet-cultural-vqa` dataset, but images and captions are now mainly used during data processing for standalone-question rewriting and traceability. The current API and web app do not accept images as runtime input.
